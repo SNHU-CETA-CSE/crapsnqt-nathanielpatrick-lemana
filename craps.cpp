@@ -10,16 +10,18 @@
 #include "die.h"
 #include "craps.h"
 #include "ui_CrapsMainWindow.h"
+#include <sstream>
 
-
-CrapsMainWindow :: CrapsMainWindow(QMainWindow *parent) {
+CrapsMainWindow :: CrapsMainWindow(QMainWindow *parent):
     // Build a GUI window with two dice.
 
-    setupUi(this);
+    currentBankValue{ 10000 },
+    winsCount { 0 },
+    firstRoll { true },
+    rollValue { 0 }
 
-    Die die1, die2;
-    bool firstRoll = true;
-    int winsCount = 0;
+{
+    setupUi(this);
 
     QObject::connect(rollButton, SIGNAL(clicked()), this, SLOT(rollButtonClickedHandler()));
 }
@@ -36,15 +38,28 @@ void CrapsMainWindow::updateUI() {
     die1UI->setPixmap(QPixmap(QString::fromStdString(die1ImageName)));
     die2UI->setPixmap(QPixmap(QString::fromStdString(die2ImageName)));
 
-    currentBankValueUI->setText(QString::fromStdString("100"));
+    currentBankValueUI->setText(QString::fromStdString(std::to_string(currentBankValue)));
+    //winsCountUI->setText(QString::fromStdString(std::to_string(winsCount)));
+
 }
 
 // Player asked for another roll of the dice.
 void CrapsMainWindow::rollButtonClickedHandler() {
 //void Craps::rollButtonClickedHandler() {
     printf("Roll button clicked\n");
-    die1.roll();
-    die2.roll();
+    rollValue =  die1.roll() + die2.roll();
+    if(firstRoll){
+        // Play the game as if it was the first roll
+        std::cout << "hello\n";
+        firstRoll = false;
+    }
+    else {
+        // Play the game if one of first roll values is eligible for a second roll
+        std::cout << "goodbye\n";
+        firstRoll = true;
+    }
     printStringRep();
+    currentBankValue -= 100;
+    winsCount += 1;
     updateUI();
 }
