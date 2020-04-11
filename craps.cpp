@@ -39,7 +39,7 @@ void CrapsMainWindow::updateUI() {
     die2UI->setPixmap(QPixmap(QString::fromStdString(die2ImageName)));
 
     currentBankValueUI->setText(QString::fromStdString(std::to_string(currentBankValue)));
-    //winsCountUI->setText(QString::fromStdString(std::to_string(winsCount)));
+    winsCountUI->setText(QString::fromStdString(std::to_string(winsCount)));
 
 }
 
