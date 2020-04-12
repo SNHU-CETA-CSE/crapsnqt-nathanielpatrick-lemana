@@ -15,7 +15,7 @@
 CrapsMainWindow :: CrapsMainWindow(QMainWindow *parent):
     // Build a GUI window with two dice.
 
-    currentBankValue{ 10000 },
+    currentBankValue{ 10000.00 },
     winsCount { 0 },
     lossCount { 0 },
     firstRoll { true },
@@ -40,17 +40,14 @@ void CrapsMainWindow::updateUI() {
     std::string die2ImageName = ":/dieImages/" + std::to_string(die2.getValue());
     die1UI->setPixmap(QPixmap(QString::fromStdString(die1ImageName)));
     die2UI->setPixmap(QPixmap(QString::fromStdString(die2ImageName)));
-
     currentBankValueUI->setText(QString::fromStdString(std::to_string(currentBankValue)));
     winsCountUI->setText(QString::fromStdString(std::to_string(winsCount)));
-    lossCountUI->setText(QString::fromStdString(std::to_string(winsCount)));
+    lossCountUI->setText(QString::fromStdString(std::to_string(lossCount)));
 
 
 }
 
-// Player asked for another roll of the dice.
 void CrapsMainWindow::rollButtonClickedHandler() {
-//void Craps::rollButtonClickedHandler() {
     bool rollCompleted = false;
     float localBank = currentBankValue;
 
@@ -67,6 +64,8 @@ void CrapsMainWindow::rollButtonClickedHandler() {
             previousRoll = rollValue;
             firstRoll = false;
             rollCompleted = false;
+            rollValueUI->setText(QString::fromStdString(std::to_string(previousRoll)));
+            rollButton->setText(QString::fromStdString("ROLL AGAIN!"));
         }
     } else {
         // Play the game if one of first roll values is eligible for a second roll
@@ -76,6 +75,7 @@ void CrapsMainWindow::rollButtonClickedHandler() {
             previousRoll = rollValue;
             firstRoll = true;
             rollCompleted = false;
+            rollValueUI->setText(QString::fromStdString(std::to_string(previousRoll)));
         }
     }
     printStringRep();
@@ -126,7 +126,7 @@ std::tuple<bool, float>  CrapsMainWindow::playFirstRoll(int rollValue, float cur
             return std::make_tuple(true, currentBank);
         }
         default: {
-            //rollingForUI->setText(QString::fromStdString(std::to_string(rollValue)));
+            rollingForUI->setText(QString::fromStdString(std::to_string(rollValue)));
             return std::make_tuple(false, currentBank);
         }
     }
@@ -142,27 +142,28 @@ std::tuple<bool, float>  CrapsMainWindow::playSecondRoll(int rollValue, int prev
 
 float CrapsMainWindow::processWin(int rollValue, int rollNumber, float currentBank, float currentBet) {
     std::cout << "You won!" << "\n";
+    winsCount += 1;
     return calculateCurrentBank(rollValue, rollNumber, currentBank, currentBet, true);
 }
 
 float CrapsMainWindow::processLoss(int rollValue, int rollNumber, float currentBank, float currentBet) {
     std::cout << "You lost." << "\n";
-    return calculateCurrentBank(rollValue, rollNumber, currentBank, currentBet, false);
+    lossCount += 1;return calculateCurrentBank(rollValue, rollNumber, currentBank, currentBet, false);
 };
 
 const float payouts[] = {0.0, 0.0, 1.0, 1.0, 2.0, 1.5, 1.2, 1.0, 1.2, 1.5, 2.0, 1.0, 1.0};
 
 float CrapsMainWindow::calculateCurrentBank(int rollValue, int rollNumber, float currentBank, float currentBet, bool wonBet) {
     if (rollNumber == 1) {
-        if(wonBet)
+        if (wonBet) {
             return currentBank + currentBet;
-        else
+        } else
             return currentBank - currentBet;
-    }
-    else {
-        if(wonBet)
+    } else {
+        if(wonBet) {
             return currentBank + currentBet * payouts[rollValue];
-        else
+        } else {
             return currentBank - currentBet * payouts[rollValue];
+        }
     }
 };
