@@ -54,6 +54,7 @@ void CrapsMainWindow::rollButtonClickedHandler() {
     printf("Roll button clicked\n");
     rollValue =  die1.roll() + die2.roll();
     if(firstRoll) {
+        currentBet = processBet(currentBankValue);
         // Play the game as if it was the first roll
         std::tie(rollCompleted, localBank) = playFirstRoll(rollValue, currentBankValue, currentBet);
         if (rollCompleted) {
@@ -78,3 +79,87 @@ void CrapsMainWindow::rollButtonClickedHandler() {
     winsCount += 1;
     updateUI();
 }
+
+inline bool isInteger(const std::string & s) {
+    if(s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) return false;
+    char * p;
+    strtol(s.c_str(), &p, 10);
+    return (*p == 0);
+}
+
+float CrapsMainWindow::processBet(float currentBank) {
+    float attemptedBet;
+    bool  betAccepted = false;
+
+    std::string userInput = "";
+    while (!betAccepted){
+        std::cout << "How much would you like to bet? ";
+        std::cin >> userInput;
+        if(isInteger(userInput)) {
+            attemptedBet = stof(userInput);
+            if (attemptedBet <= currentBank) {
+                betAccepted = true;
+                return attemptedBet;
+            } else {
+                std::cout << "You don't have that much money!" << "\n";
+                betAccepted = false;
+            }
+        } else
+            betAccepted = false;
+    }
+};
+
+std::tuple<bool, float>  CrapsMainWindow::playFirstRoll(int rollValue, float currentBank, float currentBet){
+    std::cout << rollValue << "\n";
+    switch (rollValue) {
+        case 7:
+        case 11: {
+            currentBank = processWin(rollValue, 1, currentBank, currentBet);
+            return std::make_tuple(true, currentBank);
+        }
+        case 2:
+        case 3:
+        case 12: {
+            currentBank = processLoss(rollValue, 1, currentBank, currentBet);
+            return std::make_tuple(true, currentBank);
+        }
+        default: {
+            return std::make_tuple(false, currentBank);
+        }
+    }
+};
+
+std::tuple<bool, float>  CrapsMainWindow::playSecondRoll(int rollValue, int previousRoll,  float currentBank, float currentBet){
+    if (rollValue == previousRoll) {
+        return std::make_tuple(true, processWin(rollValue, 2, currentBank, currentBet));
+    } else {
+        return std::make_tuple(true, processLoss(rollValue, 2, currentBank, currentBet));
+    }
+};
+
+float CrapsMainWindow::processWin(int rollValue, int rollNumber, float currentBank, float currentBet) {
+    std::cout << "You won!" << "\n";
+    return calculateCurrentBank(rollValue, rollNumber, currentBank, currentBet, true);
+}
+
+float CrapsMainWindow::processLoss(int rollValue, int rollNumber, float currentBank, float currentBet) {
+    std::cout << "You lost." << "\n";
+    return calculateCurrentBank(rollValue, rollNumber, currentBank, currentBet, false);
+};
+
+const float payouts[] = {0.0, 0.0, 1.0, 1.0, 2.0, 1.5, 1.2, 1.0, 1.2, 1.5, 2.0, 1.0, 1.0};
+
+float CrapsMainWindow::calculateCurrentBank(int rollValue, int rollNumber, float currentBank, float currentBet, bool wonBet) {
+    if (rollNumber == 1) {
+        if(wonBet)
+            return currentBank + currentBet;
+        else
+            return currentBank - currentBet;
+    }
+    else {
+        if(wonBet)
+            return currentBank + currentBet * payouts[rollValue];
+        else
+            return currentBank - currentBet * payouts[rollValue];
+    }
+};

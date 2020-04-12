@@ -33,6 +33,11 @@ private:
     float processLoss(int rollValue, int rollNumber, float currentBank, float currentBet);
     float calculateCurrentBank(int rollValue, int rollNumber, float currentBank, float currentBet, bool wonBet);
 
+    float processBet(float currentBank);
+    //bool isInteger(const std::string & s);
+    //void displayResults(float currentBank, float currentBet);
+
+
 public Q_SLOTS:
     void rollButtonClickedHandler();
 
