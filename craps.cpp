@@ -17,6 +17,7 @@ CrapsMainWindow :: CrapsMainWindow(QMainWindow *parent):
 
     currentBankValue{ 10000 },
     winsCount { 0 },
+    lossCount { 0 },
     firstRoll { true },
     rollValue { 0 },
     currentBet { 0 },
@@ -42,6 +43,8 @@ void CrapsMainWindow::updateUI() {
 
     currentBankValueUI->setText(QString::fromStdString(std::to_string(currentBankValue)));
     winsCountUI->setText(QString::fromStdString(std::to_string(winsCount)));
+    lossCountUI->setText(QString::fromStdString(std::to_string(winsCount)));
+
 
 }
 
@@ -51,32 +54,31 @@ void CrapsMainWindow::rollButtonClickedHandler() {
     bool rollCompleted = false;
     float localBank = currentBankValue;
 
-    printf("Roll button clicked\n");
     rollValue =  die1.roll() + die2.roll();
     if(firstRoll) {
         currentBet = processBet(currentBankValue);
         // Play the game as if it was the first roll
+        std::cout << "This is the first roll\n";
         std::tie(rollCompleted, localBank) = playFirstRoll(rollValue, currentBankValue, currentBet);
         if (rollCompleted) {
-            firstRoll = 0;
+            firstRoll = true;
             rollCompleted = false;
         } else {
             previousRoll = rollValue;
-            firstRoll = 2;
+            firstRoll = false;
             rollCompleted = false;
         }
     } else {
         // Play the game if one of first roll values is eligible for a second roll
+        std::cout << "This is the second roll\n";
         std::tie(rollCompleted, localBank) = playSecondRoll(rollValue, previousRoll, currentBankValue, currentBet);
         if (rollCompleted) {
             previousRoll = rollValue;
-            firstRoll = 0;
+            firstRoll = true;
             rollCompleted = false;
         }
     }
     printStringRep();
-    currentBankValue -= 100;
-    winsCount += 1;
     updateUI();
 }
 
@@ -124,6 +126,7 @@ std::tuple<bool, float>  CrapsMainWindow::playFirstRoll(int rollValue, float cur
             return std::make_tuple(true, currentBank);
         }
         default: {
+            //rollingForUI->setText(QString::fromStdString(std::to_string(rollValue)));
             return std::make_tuple(false, currentBank);
         }
     }
