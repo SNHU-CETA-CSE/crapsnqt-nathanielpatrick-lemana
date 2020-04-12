@@ -24,6 +24,14 @@ private:
     int lossCount;
     float currentBankValue;
     int rollValue;
+    int currentBet;
+    int previousRoll;
+
+    std::tuple<bool, float> playFirstRoll(int rollValue, float currentBank, float currentBet);
+    std::tuple<bool, float> playSecondRoll(int rollValue, int previousRoll, float currentBank, float currentBet);
+    float processWin(int rollValue, int rollNumber, float currentBank, float currentBet);
+    float processLoss(int rollValue, int rollNumber, float currentBank, float currentBet);
+    float calculateCurrentBank(int rollValue, int rollNumber, float currentBank, float currentBet, bool wonBet);
 
 public Q_SLOTS:
     void rollButtonClickedHandler();

@@ -18,7 +18,9 @@ CrapsMainWindow :: CrapsMainWindow(QMainWindow *parent):
     currentBankValue{ 10000 },
     winsCount { 0 },
     firstRoll { true },
-    rollValue { 0 }
+    rollValue { 0 },
+    currentBet { 0 },
+    previousRoll { 0 }
 
 {
     setupUi(this);
@@ -46,17 +48,30 @@ void CrapsMainWindow::updateUI() {
 // Player asked for another roll of the dice.
 void CrapsMainWindow::rollButtonClickedHandler() {
 //void Craps::rollButtonClickedHandler() {
+    bool rollCompleted = false;
+    float localBank = currentBankValue;
+
     printf("Roll button clicked\n");
     rollValue =  die1.roll() + die2.roll();
-    if(firstRoll){
+    if(firstRoll) {
         // Play the game as if it was the first roll
-        std::cout << "hello\n";
-        firstRoll = false;
-    }
-    else {
+        std::tie(rollCompleted, localBank) = playFirstRoll(rollValue, currentBankValue, currentBet);
+        if (rollCompleted) {
+            firstRoll = 0;
+            rollCompleted = false;
+        } else {
+            previousRoll = rollValue;
+            firstRoll = 2;
+            rollCompleted = false;
+        }
+    } else {
         // Play the game if one of first roll values is eligible for a second roll
-        std::cout << "goodbye\n";
-        firstRoll = true;
+        std::tie(rollCompleted, localBank) = playSecondRoll(rollValue, previousRoll, currentBankValue, currentBet);
+        if (rollCompleted) {
+            previousRoll = rollValue;
+            firstRoll = 0;
+            rollCompleted = false;
+        }
     }
     printStringRep();
     currentBankValue -= 100;
