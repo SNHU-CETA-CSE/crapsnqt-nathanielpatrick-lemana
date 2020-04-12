@@ -26,14 +26,17 @@ private:
     int rollValue;
     int currentBet;
     int previousRoll;
+    //std::string statusMessage;
+    //const float payouts[];
+
 
     std::tuple<bool, float> playFirstRoll(int rollValue, float currentBank, float currentBet);
     std::tuple<bool, float> playSecondRoll(int rollValue, int previousRoll, float currentBank, float currentBet);
     float processWin(int rollValue, int rollNumber, float currentBank, float currentBet);
     float processLoss(int rollValue, int rollNumber, float currentBank, float currentBet);
-    float calculateCurrentBank(int rollValue, int rollNumber, float currentBank, float currentBet, bool wonBet);
+    static float calculateCurrentBank(int rollValue, int rollNumber, float currentBank, float currentBet, bool wonBet);
 
-    float processBet(float currentBank);
+    int processBet(float currentBank);
     //bool isInteger(const std::string & s);
     //void displayResults(float currentBank, float currentBet);
 
