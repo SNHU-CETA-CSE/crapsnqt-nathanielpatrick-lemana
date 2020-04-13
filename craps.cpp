@@ -19,8 +19,8 @@ CrapsMainWindow :: CrapsMainWindow(QMainWindow *parent):
     firstRoll { true },
     winsCount { 0 },
     lossCount { 0 },
-    currentBankValue { 10000 },
-    currentBet{ 10 },
+    currentBankValue { 100 },
+    currentBet{ 0 },
     previousRoll { 0 }
     //statusMessage { "" },
     //payouts {0.0, 0.0, 1.0, 1.0, 2.0, 1.5, 1.2, 1.0, 1.2, 1.5, 2.0, 1.0, 1.0}
@@ -38,6 +38,8 @@ void CrapsMainWindow::printStringRep() {
 }
 void CrapsMainWindow::updateUI() {
 //    printf("Inside updateUI()\n");
+
+//Stream in the bank value
     std::stringstream updatedBank;
     updatedBank << std::fixed << std::setprecision(2) << currentBankValue;
     std::string updatedBankString = updatedBank.str();
@@ -49,51 +51,57 @@ void CrapsMainWindow::updateUI() {
     currentBankValueUI->setText("$" + QString::fromStdString(updatedBankString));
     winsCountUI->setText(QString::fromStdString(std::to_string(winsCount)));
     lossCountUI->setText(QString::fromStdString(std::to_string(lossCount)));
+    if (currentBankValue <= 0){
+        rollButton->setEnabled(false);
+        rollButton->setText(QString::fromStdString("BANKRUPT!"));
+    }
 
 }
 
 void CrapsMainWindow::rollButtonClickedHandler() {
     bool rollCompleted = false;
     float localBank = currentBankValue;
-
     rollValue =  die1.roll() + die2.roll();
-    if(firstRoll) {
-        currentRollUI->setText("1");
-        rollingForUI->setText("Waiting...");
-        statusUI->setText("Waiting...");
-        currentBet = processBet(currentBankValue);
-        // Play the game as if it was the first roll
-        std::cout << "This is the first roll\n";
-        std::tie(rollCompleted, localBank) = playFirstRoll(rollValue, currentBankValue, currentBet);
-        if (rollCompleted) {
-            firstRoll = true;
-            rollCompleted = false;
-            currentBankValue = localBank;
-        } else {
-            previousRoll = rollValue;
-            firstRoll = false;
-            rollCompleted = false;
-            rollValueUI->setText(QString::fromStdString(std::to_string(previousRoll)));
-
-            rollButton->setText(QString::fromStdString("ROLL AGAIN!"));
-        }
+    currentBet = processBet(currentBankValue);
+    if (currentBet > currentBankValue){
+        statusUI->setText("Not enough money!");
     } else {
-        // Play the game if one of first roll values is eligible for a second roll
-        std::cout << "This is the second roll\n";
-        currentRollUI->setText("2");
-        std::tie(rollCompleted, localBank) = playSecondRoll(rollValue, previousRoll, currentBankValue, currentBet);
-        if (rollCompleted) {
-            previousRoll = rollValue;
-            firstRoll = true;
-            rollCompleted = false;
-            currentBankValue = localBank;
-            rollValueUI->setText(QString::fromStdString(std::to_string(previousRoll)));
-            rollButton->setText(QString::fromStdString("ROLL!"));
-        }
-    }
+        if (firstRoll) {
+            currentRollUI->setText("1");
+            rollingForUI->setText("Waiting...");
+            statusUI->setText("Waiting...");
+            // Play the game as if it was the first roll
+            std::cout << "This is the first roll\n";
+            std::tie(rollCompleted, localBank) = playFirstRoll(rollValue, currentBankValue, currentBet);
+            if (rollCompleted) {
+                firstRoll = true;
+                rollCompleted = false;
+                currentBankValue = localBank;
+            } else {
+                previousRoll = rollValue;
+                firstRoll = false;
+                rollCompleted = false;
+                rollValueUI->setText(QString::fromStdString(std::to_string(previousRoll)));
 
-    printStringRep();
-    updateUI();
+                rollButton->setText(QString::fromStdString("ROLL AGAIN!"));
+            }
+        } else {
+            // Play the game if one of first roll values is eligible for a second roll
+            std::cout << "This is the second roll\n";
+            currentRollUI->setText("2");
+            std::tie(rollCompleted, localBank) = playSecondRoll(rollValue, previousRoll, currentBankValue, currentBet);
+            if (rollCompleted) {
+                previousRoll = rollValue;
+                firstRoll = true;
+                rollCompleted = false;
+                currentBankValue = localBank;
+                rollValueUI->setText(QString::fromStdString(std::to_string(previousRoll)));
+                rollButton->setText(QString::fromStdString("ROLL!"));
+            }
+        }
+        printStringRep();
+        updateUI();
+    }
 }
 
 inline bool isInteger(const std::string & s) {
@@ -105,12 +113,11 @@ inline bool isInteger(const std::string & s) {
 
 int CrapsMainWindow::processBet(float currentBankValue) {
     int attemptedBet;
-
     attemptedBet = userBetUI->value();
     if (float(attemptedBet) <= currentBankValue) {
         return attemptedBet;
     } else {
-        return 0;
+        return attemptedBet;
     }
 }
 
@@ -148,14 +155,14 @@ std::tuple<bool, float>  CrapsMainWindow::playSecondRoll(int rollValue, int prev
 float CrapsMainWindow::processWin(int rollValue, int rollNumber, float currentBank, float currentBet) {
     std::cout << "You won!" << "\n";
     statusUI->setText(QString::fromStdString("You won!"));
-    winsCount += 1;
+    winsCount++;
     return calculateCurrentBank(rollValue, rollNumber, currentBank, currentBet, true);
 }
 
 float CrapsMainWindow::processLoss(int rollValue, int rollNumber, float currentBank, float currentBet) {
     std::cout << "You lost." << "\n";
     statusUI->setText(QString::fromStdString("You lost."));
-    lossCount += 1;
+    lossCount++;
     return calculateCurrentBank(rollValue, rollNumber, currentBank, currentBet, false);
 };
 
